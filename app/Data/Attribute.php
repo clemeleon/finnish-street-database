@@ -32,11 +32,6 @@ class Attribute implements IData
         $this->load($datas);
     }
 
-    private function get(): array
-    {
-        return array_keys(get_class_vars(get_class($this)));
-    }
-
     private function load(array $datas): void
     {
         $temps = array_change_key_case($datas, CASE_LOWER);
@@ -49,14 +44,9 @@ class Attribute implements IData
         }
     }
 
-    public function getData(): array
+    private function get(): array
     {
-        $datas = [];
-        $keys = $this->get();
-        foreach ($keys as $key) {
-            $datas[$key] = $this->{$key};
-        }
-        return $datas;
+        return array_keys(get_class_vars(get_class($this)));
     }
 
     public static function getColumns(): array
@@ -71,5 +61,15 @@ class Attribute implements IData
             'minApartmentNo' => 'VARCHAR(10) NULL',
             'maxApartmentNo' => 'VARCHAR(10) NULL'
         ];
+    }
+
+    public function getData(): array
+    {
+        $datas = [];
+        $keys = $this->get();
+        foreach ($keys as $key) {
+            $datas[$key] = $this->{$key};
+        }
+        return $datas;
     }
 }

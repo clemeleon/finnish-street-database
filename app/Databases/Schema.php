@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace App\Databases;
 
 
+use App\Helpers\Config;
 use App\Helpers\Helper;
 use PDO;
 use PDOException;
@@ -17,6 +18,9 @@ class Schema
 {
     private PDO $db;
 
+    /**
+     * @var array|string[][]
+     */
     private array $sql = [
         ['CREATE', 'TABLE IF NOT EXISTS `%s` (%s) CHARACTER SET utf8 COLLATE utf8_general_ci;'],
         ['INSERT', 'INTO %s %s VALUES %s;'],
@@ -25,13 +29,17 @@ class Schema
 
     public function __construct()
     {
-        $dsn = Helper::sprint('mysql:host=%s;dbname=%s', ['localhost', 'streets']);
+        [
+            'host' => $host, 'pass' => $pass,
+            'name' => $name, 'username' => $username
+        ] = Config::init()->get('database');
+        $dsn = Helper::sprint('mysql:host=%s;dbname=%s', [$host, $name]);
         $options = [
             PDO::ATTR_EMULATE_PREPARES => false,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_CASE => PDO::CASE_NATURAL
         ];
-        $this->db = new PDO($dsn, 'root', 'lincolndev', $options);
+        $this->db = new PDO($dsn, $username, $pass, $options);
     }
 
     public function create(string $table, array $datas): bool
@@ -53,21 +61,16 @@ class Schema
         //var_dump($field);
         $sql = Helper::sprint($sql, [$table, $field]);
         //var_dump($sql);
-         return ($this->db->exec($sql) !== false);
+        return ($this->db->exec($sql) !== false);
     }
 
-    private function keys(array $keys, string $style): array
-    {
-        if (empty($keys)) {
-            return $keys;
-        }
-        $content = [];
-        foreach ($keys as $num => $key) {
-            $content[] = Helper::sprint($style, [$key, $key]);
-        }
-        return $content;
-    }
-
+    /**
+     * @param string $table
+     * @param array|string[] $columns array values only needed
+     * @param array $where [[column, operator, value], [column, operator, value]]
+     * @param array $limits [start, end]
+     * @return array
+     */
     public function select(string $table, array $columns = ['*'], array $where = [], array $limits = []): array
     {
         $sql = implode(' ', $this->sql[2]);
@@ -84,12 +87,11 @@ class Schema
                 $values[":$key"] = $value;
             }
             if (count($keys) === count($values)) {
-                $condition = "WHERE ". implode(' AND ', $keys);
+                $condition = "WHERE " . implode(' AND ', $keys);
             }
-            //$condition = 'WHERE '. implode(' AND ', $condition);
-            //$values = array_combine($this->keys(array_keys($where), ':%s'), array_values($where));
-            //var_dump($values);
-        } else { $condition = ''; }
+        } else {
+            $condition = '';
+        }
         if (!empty($limits)) {
             foreach ($limits as $lim) {
                 $lim = (int)$lim;
@@ -133,6 +135,18 @@ class Schema
             $values[] = array_combine($keys, array_values($arr));
         }
         return $this->save($sql, $values);
+    }
+
+    private function keys(array $keys, string $style): array
+    {
+        if (empty($keys)) {
+            return $keys;
+        }
+        $content = [];
+        foreach ($keys as $num => $key) {
+            $content[] = Helper::sprint($style, [$key, $key]);
+        }
+        return $content;
     }
 
     private function save(string $sql, array $datas): array

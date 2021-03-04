@@ -17,6 +17,7 @@ use Exception;
 class Quest
 {
     private array $routes = [
+        '/' => [StreetController::class, 'home'],
         '/streets' => [StreetController::class, 'all']
     ];
 
@@ -27,29 +28,11 @@ class Quest
             header("Content-Type: application/json; charset=UTF-8");
             header("Access-Control-Allow-Methods: GET");
             header("Access-Control-Max-Age: 3600");
-            header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-            $this->check();
+            header(
+                "Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+            );
         }
-    }
-
-    private function check(): void {
-        $path = $this->path();
-        foreach ($this->routes as $key => $route) {
-            if (strpos($path, $key) !== false) {
-                $temps = explode('/', ltrim(rtrim($path, '/'), '/'));
-                $params = [];
-                $count = count($temps);
-                for ($i = 0; $i < $count; $i++) {
-                    if (strpos($key, $temps[$i]) === false) {
-                        $params[] = $temps[$i];
-                    }
-                }
-                $this->navigate($route, $params);
-                return;
-            }
-        }
-        $this->response(400, 'page doesnt exist!', 'This endpoint has moved or changed!');
-
+        $this->check();
     }
 
     private function path(): string
@@ -57,18 +40,29 @@ class Quest
         return $_SERVER['REQUEST_URI'];
     }
 
-    private function response(int $code = 200, string $title = null, $message = null): void
+    private function check(): void
     {
-        if ($code === 400) {
-            $data = new BadRequestError($title ?? '', $message ?? '');
-        } elseif($code === 500) {
-            $data = new InternalServerError($title ?? '', $message ?? '');
-        } else {
-            $data = $message;
+        $path = $this->path();
+        foreach ($this->routes as $key => $route) {
+            if (strpos($path, $key) !== false) {
+                $params = [];
+                if ($path !== '/') {
+                    $temps = explode('/', ltrim(rtrim($path, '/'), '/'));
+                    $count = count($temps);
+                    for ($i = 0; $i < $count; $i++) {
+                        if (strpos($key, $temps[$i]) === false) {
+                            $params[] = $temps[$i];
+                        }
+                    }
+                }
+                if (strlen($path) > 1 && strlen($key) === 1) {
+                    continue;
+                }
+                $this->navigate($route, $params);
+                return;
+            }
         }
-        http_response_code($code);
-        echo json_encode($data);
-        exit();
+        $this->response(400, 'page doesnt exist!', 'This endpoint has moved or changed!');
     }
 
     private function navigate(array $route, array $params = []): void
@@ -84,5 +78,22 @@ class Quest
             $data = [500, '', ''];
         }
         $this->response(...$data);
+    }
+
+    private function response(int $code = 200, string $title = null, $message = null, bool $skip = false): void
+    {
+        if (!$skip) {
+            if ($code === 400) {
+                $data = new BadRequestError($title ?? '', $message ?? '');
+            } elseif ($code === 500) {
+                $data = new InternalServerError($title ?? '', $message ?? '');
+            } else {
+                $data = $message;
+            }
+            http_response_code($code);
+            echo json_encode($data);
+            exit();
+        }
+        echo (is_string($message)) ? $message : '';
     }
 }

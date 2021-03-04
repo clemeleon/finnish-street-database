@@ -4,9 +4,9 @@
 //run-with  /var/www/html# php ./run.php
 // 000*0 /usr/bin/php -f /var/www/html/run.php &> /dev/null
 
+use App\Data\Attribute;
 use App\Databases\Schema;
 use App\Helpers\Helper;
-use App\Data\Attribute;
 
 require __DIR__ . '/vendor/autoload.php';
 $start = Helper::monitor();

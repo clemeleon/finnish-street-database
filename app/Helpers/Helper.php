@@ -41,12 +41,6 @@ class Helper
         return $datas;
     }
 
-    public static function sub(string $str, int $start, int $end): string
-    {
-        $value = substr(trim($str), $start, $end);
-        return (!is_string($value)) ? '' : trim($value);
-    }
-
     /**
      * @param string $path
      * @return iterable
@@ -62,6 +56,12 @@ class Helper
         }
 
         fclose($handle);
+    }
+
+    public static function sub(string $str, int $start, int $end): string
+    {
+        $value = substr(trim($str), $start, $end);
+        return (!is_string($value)) ? '' : trim($value);
     }
 
     public static function guid(): string

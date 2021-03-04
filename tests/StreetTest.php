@@ -9,8 +9,8 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use App\Helpers\Config;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 
 final class StreetTest extends \PHPUnit_Framework_TestCase
 {
@@ -18,7 +18,9 @@ final class StreetTest extends \PHPUnit_Framework_TestCase
 
     public function setup()
     {
-        $this->http = new Client(['base_uri' => 'http://html.test']);
+        $config = Config::init();
+        $domain = implode('', $config->pick(['protocol', 'domain']));
+        $this->http = new Client(['base_uri' => $domain]);
     }
 
     public function testValid()
@@ -35,9 +37,13 @@ final class StreetTest extends \PHPUnit_Framework_TestCase
 
     public function testBad()
     {
-        $response = $this->http->request('GET', '/fake',[
+        $response = $this->http->request(
+            'GET',
+            '/fake',
+            [
                 'http_errors' => false
-            ]);
+            ]
+        );
         $this->assertEquals(400, $response->getStatusCode());
     }
 }
