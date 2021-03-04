@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 # This file would be say, 'loading content into database'
-//  /var/www/html# php ./run.php
+//run-with  /var/www/html# php ./run.php
 // 000*0 /usr/bin/php -f /var/www/html/run.php &> /dev/null
 
 use App\Databases\Schema;

@@ -57,15 +57,16 @@ class Quest
         return $_SERVER['REQUEST_URI'];
     }
 
-    private function response(int $code = 0, string $title = null, $message = null): void
+    private function response(int $code = 200, string $title = null, $message = null): void
     {
         if ($code === 400) {
-            $data = ['error' => new BadRequestError($title ?? '', $message ?? '')];
+            $data = new BadRequestError($title ?? '', $message ?? '');
         } elseif($code === 500) {
-            $data = ['error' => new InternalServerError($title ?? '', $message ?? '')];
+            $data = new InternalServerError($title ?? '', $message ?? '');
         } else {
             $data = $message;
         }
+        http_response_code($code);
         echo json_encode($data);
         exit();
     }
