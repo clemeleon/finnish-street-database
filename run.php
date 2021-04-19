@@ -10,7 +10,7 @@ use App\Helpers\Helper;
 
 require __DIR__ . '/vendor/autoload.php';
 $start = Helper::monitor();
-$datas = Helper::load('/mnt/c/www/html/BAF_20191116.dat');
+$datas = Helper::load('');
 $str = 'File not found or file was empty';
 $table = 'streets';
 if (!empty($datas)) {

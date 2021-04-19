@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 return [
     'name' => '',
-    'domain' => 'html.test',
+    'domain' => 'localhost',
     'path' => '',
     'database' => [
         'host' => 'localhost',
-        'name' => 'streets',
-        'username' => 'root',
-        'pass' => 'lincolndev'
+        'name' => '',
+        'username' => '',
+        'pass' => ''
     ]
 ];
